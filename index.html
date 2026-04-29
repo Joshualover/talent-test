@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>耶鲁大学儿童潜能自查表 - 天赋自测</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --primary: #5B4CC4;
+    --primary-light: #7C6FE0;
+    --accent: #FF6B6B;
+    --gold: #F4A940;
+    --bg-start: #F0EDFF;
+    --bg-end: #FFF5F0;
+    --card-bg: #FFFFFF;
+    --text: #2D2A3D;
+    --text-light: #6B6880;
+    --border: #E8E5F2;
+    --success: #4ECDC4;
+    --shadow: 0 4px 24px rgba(91,76,196,0.08);
+    --shadow-lg: 0 8px 40px rgba(91,76,196,0.12);
+    --radius: 20px;
+    --radius-sm: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(160deg, var(--bg-start) 0%, var(--bg-end) 60%, #FFF8F0 100%);
+    min-height: 100vh;
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 32px 20px 24px;
+  }
+  .header .icon { font-size: 48px; margin-bottom: 8px; }
+  .header h1 {
+    font-size: clamp(22px, 4vw, 30px);
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 6px;
+  }
+  .header .subtitle {
+    color: var(--text-light);
+    font-size: 14px;
+    margin-top: 4px;
+  }
+  .header .badge {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    font-size: 12px;
+    padding: 3px 12px;
+    border-radius: 20px;
+    margin-top: 10px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    transition: box-shadow 0.3s;
+  }
+  .card:hover { box-shadow: var(--shadow-lg); }
+
+  .card h2 {
+    font-size: 18px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card .desc {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 16px;
+  }
+
+  /* Progress */
+  .progress-wrap {
+    margin-bottom: 20px;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 6px;
+  }
+  .progress-bar {
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-light), var(--success));
+    border-radius: 4px;
+    transition: width 0.3s;
+  }
+
+  /* Question items */
+  .question-list { list-style: none; }
+  .question-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    margin-bottom: 4px;
+    border: 2px solid transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .question-item:hover { background: #F8F7FF; }
+  .question-item:active { transform: scale(0.99); }
+  .question-item.checked {
+    background: #F4F1FF;
+    border-color: var(--primary-light);
+  }
+
+  .question-item input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    border: 2px solid #CBC8E0;
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    margin-top: 1px;
+  }
+  .question-item input[type="checkbox"]:checked {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+  .question-item input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 7px;
+    top: 3px;
+    width: 8px;
+    height: 13px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .question-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border-radius: 50%;
+    background: #F0EDFF;
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .question-item.checked .question-num {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  .question-text {
+    font-size: 15px;
+    line-height: 1.5;
+    padding-top: 2px;
+  }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 14px 36px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-decoration: none;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(91,76,196,0.25);
+  }
+  .btn-primary:hover { box-shadow: 0 8px 28px rgba(91,76,196,0.4); }
+  .btn-primary:disabled {
+    background: #CBC8E0;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+  .btn-outline {
+    background: #fff;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+  }
+  .btn-outline:hover { background: #F8F7FF; }
+
+  /* Results */
+  #results { display: none; }
+
+  .chart-wrap {
+    position: relative;
+    max-width: 420px;
+    margin: 0 auto 28px;
+    padding: 16px 0;
+  }
+
+  .talent-card {
+    background: #FAFAFD;
+    border-radius: var(--radius-sm);
+    padding: 18px 16px;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--primary-light);
+  }
+  .talent-card.top { border-left-color: var(--accent); background: #FFF8F7; }
+  .talent-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .talent-name { font-weight: 700; font-size: 16px; }
+  .talent-score {
+    font-size: 13px;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-weight: 700;
+  }
+  .talent-score.high { background: #FFE8E5; color: var(--accent); }
+  .talent-score.medium { background: #E8E5FF; color: var(--primary); }
+  .talent-score.low { background: #F0F0F5; color: var(--text-light); }
+  .talent-bar-wrap {
+    height: 6px;
+    background: #E8E5F2;
+    border-radius: 3px;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .talent-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s ease;
+  }
+  .talent-bar-fill.high { background: var(--accent); }
+  .talent-bar-fill.medium { background: var(--primary-light); }
+  .talent-bar-fill.low { background: #CBC8E0; }
+
+  .talent-detail { font-size: 13px; color: var(--text-light); margin: 4px 0; }
+  .talent-suggest {
+    font-size: 13px;
+    background: #FFFBF0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+    color: #8B6F20;
+  }
+  .talent-suggest strong { color: #6B5010; }
+
+  .detail-section { margin-top: 20px; }
+  .detail-section h3 { font-size: 16px; margin-bottom: 12px; }
+
+  .detail-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .detail-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #F4F1FF;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+  }
+  .detail-tag .num {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-light);
+    font-size: 15px;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 16px;
+  }
+  .footer p {
+    font-size: 12px;
+    color: var(--text-light);
+    margin: 2px 0;
+  }
+
+  .disclaimer {
+    background: #FFFBF0;
+    border: 1px solid #F0E4B8;
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    font-size: 12px;
+    color: #8B6F20;
+    line-height: 1.7;
+    margin-top: 16px;
+  }
+  .disclaimer::before { content: "⚠️ "; }
+
+  /* Select/Deselect All */
+  .quick-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .quick-btn {
+    font-size: 12px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    color: var(--text-light);
+    transition: all 0.2s;
+  }
+  .quick-btn:hover { border-color: var(--primary-light); color: var(--primary); }
+
+  /* Print */
+  @media print {
+    body { background: #fff; }
+    .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+    #questionnaire, .btn-row, .quick-actions, .header .badge { display: none !important; }
+    #results { display: block !important; }
+    .container { max-width: 100%; padding: 0; }
+    .header { padding: 16px 0; }
+  }
+
+  /* Mobile */
+  @media (max-width: 500px) {
+    .container { padding: 10px 8px 40px; }
+    .card { padding: 20px 14px; border-radius: var(--radius-sm); }
+    .question-item { padding: 12px 10px; }
+    .question-text { font-size: 14px; }
+    .btn { padding: 12px 28px; font-size: 15px; }
+    .chart-wrap { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="icon">🌟</div>
+    <h1>儿童潜能自查表</h1>
+    <p class="subtitle">耶鲁大学罗伯特·斯腾伯格博士研究 · 多方面测验</p>
+    <span class="badge">0-14岁适用</span>
+  </div>
+
+  <!-- Questionnaire -->
+  <div class="card" id="questionnaire">
+    <h2>📋 行为观察清单</h2>
+    <p class="desc">请根据孩子日常表现，勾选<strong>明显符合</strong>的项目（建议选出3-10个最符合的）</p>
+
+    <div class="quick-actions">
+      <button class="quick-btn" onclick="selectAll()">全部选中</button>
+      <button class="quick-btn" onclick="deselectAll()">全部取消</button>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-label"><span>已选择</span><span id="progressText">0 / 20</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+
+    <ul class="question-list" id="questionList"></ul>
+
+    <div class="btn-row" style="margin-top:20px">
+      <button class="btn btn-primary" id="submitBtn" disabled onclick="showResults()">
+        ✨ 查看天赋分析
+      </button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="card">
+      <h2>🎯 天赋雷达图</h2>
+      <p class="desc">各项天赋得分分布（满分3分，≥2分表示该领域天赋显著）</p>
+      <div class="chart-wrap"><canvas id="radarChart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <h2>🏆 天赋排名与培养建议</h2>
+      <div id="talentRankings"></div>
+      <div class="disclaimer">
+        此量表为观察参考工具，并非严格的临床诊断工具。孩子的兴趣可能广泛且不稳定，建议让孩子多尝试不同领域，以兴趣为导向，在探索中发现真正的天赋。
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📝 选中项目详情</h2>
+      <div class="detail-tags" id="detailTags"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="resetTest()">🔄 重新测试</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨️ 打印结果</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>测验来源：美国耶鲁大学罗伯特·斯腾伯格博士（Robert J. Sternberg）</p>
+    <p>"多方面"测验 · 通过观察日常行为推测孩子天赋所在</p>
+  </div>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────
+const questions = [
+  { id: 1,  text: "他在背诗和有韵律的句子时很出色" },
+  { id: 2,  text: "他很注意你在高兴或愁闷时的情绪变化，并做出反应" },
+  { id: 3,  text: `他常常问诸如"时间从什么时候开始""为什么小行星不会撞到地球"这样的问题` },
+  { id: 4,  text: "凡是他走过一遍的路，他很少迷路" },
+  { id: 5,  text: "他走路的姿势很协调，随着音乐所做的动作很优美" },
+  { id: 6,  text: "他唱歌时音阶很准" },
+  { id: 7,  text: `他经常会问"打雷、闪电和下雨"是怎么回事` },
+  { id: 8,  text: "你如果用词用错了，他会给你纠正" },
+  { id: 9,  text: "他很早就会系鞋带，很早就会骑车" },
+  { id: 10, text: "他特别喜欢扮演什么角色或编出剧情" },
+  { id: 11, text: "出外旅行时，他能记住沿途标记，说：我们曾到过这里" },
+  { id: 12, text: "他喜欢听各种乐器，并能辨别发出的声音" },
+  { id: 13, text: "他画地图画得很好，路线清楚" },
+  { id: 14, text: "他善于模仿各种身体动作及面部表情" },
+  { id: 15, text: "他善于把各种杂乱的东西按规律分类" },
+  { id: 16, text: `他善于把动作和情感联系起来，譬如说"我们做这件事兴高采烈"` },
+  { id: 17, text: "他能精彩地讲故事" },
+  { id: 18, text: "他对不同的声音发表评论" },
+  { id: 19, text: `他常说某某像某某` },
+  { id: 20, text: "对别人能完成与不能完成的事他能做出准确的评价" }
+];
+
+const talents = [
+  {
+    id: "language",
+    name: "语言天赋",
+    icon: "📖",
+    items: [1, 8, 17],
+    desc: "善于表达、对词汇敏感、讲故事精彩",
+    suggest: "常请孩子描述身边的事物或事件；多提供绘本、故事书等阅读材料；鼓励孩子自己编故事、朗诵诗歌。"
+  },
+  {
+    id: "music",
+    name: "音乐才能",
+    icon: "🎵",
+    items: [6, 12, 18],
+    desc: "音准好、喜欢聆听乐器、对不同声音敏感（2-3岁即显）",
+    suggest: "多接触各类乐器（钢琴、打击乐等）；一起欣赏音乐剧、交响乐；日常多哼唱童谣和歌曲。"
+  },
+  {
+    id: "math",
+    name: "数学逻辑天赋",
+    icon: "🔢",
+    items: [3, 7, 15],
+    desc: "喜欢问逻辑性问题、善于分类、理解规则类游戏",
+    suggest: "多玩棋类/扑克牌等策略游戏；购物时让孩子练习数数和计算；提供逻辑推理类玩具（数独、拼图）。"
+  },
+  {
+    id: "spatial",
+    name: "空间才能",
+    icon: "🗺️",
+    items: [4, 11, 13],
+    desc: "方向感强、想象力丰富、对绘画和组装有兴趣",
+    suggest: "多带孩子远行探索；玩拼装类玩具（乐高、磁力片、积木）；鼓励画地图、涂鸦和手工制作。"
+  },
+  {
+    id: "bodily",
+    name: "身体动觉才能",
+    icon: "🤸",
+    items: [5, 9, 14],
+    desc: "动作协调、运动能力强、善于模仿肢体动作",
+    suggest: "参加舞蹈、体操或球类运动；通过平衡律动游戏发展身体控制；鼓励参与运动表演和团队竞技。"
+  },
+  {
+    id: "self",
+    name: "自我认识才能",
+    icon: "🧠",
+    items: [10, 16, 20],
+    desc: "独立思考、擅将情感与行为联系、能准确评价事物",
+    suggest: "鼓励孩子表达内心想法和感受；一起写故事、编剧本；通过辩论和讨论培养独立思考能力。"
+  },
+  {
+    id: "interpersonal",
+    name: "认识他人才能",
+    icon: "🤝",
+    items: [2, 10, 19],
+    desc: "善于察觉他人情绪、擅长比喻联想、人际敏感度高",
+    suggest: "多参与团体活动和小组协作；培养领导力、沟通协调能力；鼓励参加戏剧表演、角色扮演游戏。"
+  }
+];
+
+// ── Init ──────────────────────────────────────────
+let chartInstance = null;
+
+function buildQuestions() {
+  const list = document.getElementById("questionList");
+  list.innerHTML = questions.map(q => `
+    <li class="question-item" id="qItem${q.id}" onclick="toggleCheck(${q.id})">
+      <input type="checkbox" id="q${q.id}" onclick="event.stopPropagation(); toggleCheck(${q.id})">
+      <span class="question-num">${q.id}</span>
+      <span class="question-text">${q.text}</span>
+    </li>
+  `).join("");
+}
+
+function toggleCheck(id) {
+  const cb = document.getElementById("q" + id);
+  cb.checked = !cb.checked;
+  updateItemState(id);
+  updateProgress();
+  saveState();
+}
+
+function updateItemState(id) {
+  const cb = document.getElementById("q" + id);
+  const item = document.getElementById("qItem" + id);
+  if (cb.checked) {
+    item.classList.add("checked");
+  } else {
+    item.classList.remove("checked");
+  }
+}
+
+function updateProgress() {
+  const total = document.querySelectorAll("#questionList input:checked").length;
+  document.getElementById("progressText").textContent = total + " / 20";
+  document.getElementById("progressFill").style.width = (total / 20 * 100) + "%";
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = total < 3;
+  if (total < 3) {
+    btn.textContent = "✨ 查看天赋分析（至少选3项）";
+  } else {
+    btn.textContent = "✨ 查看天赋分析";
+  }
+}
+
+function selectAll() {
+  questions.forEach(q => {
+    document.getElementById("q" + q.id).checked = true;
+    updateItemState(q.id);
+  });
+  updateProgress();
+  saveState();
+}
+
+function deselectAll() {
+  questions.forEach(q => {
+    document.getElementById("q" + q.id).checked = false;
+    updateItemState(q.id);
+  });
+  updateProgress();
+  saveState();
+}
+
+// ── Persist ───────────────────────────────────────
+function saveState() {
+  const checked = questions.filter(q => document.getElementById("q" + q.id).checked).map(q => q.id);
+  localStorage.setItem("talent_test_checked", JSON.stringify(checked));
+}
+
+function loadState() {
+  const raw = localStorage.getItem("talent_test_checked");
+  if (!raw) return;
+  try {
+    const ids = JSON.parse(raw);
+    ids.forEach(id => {
+      const cb = document.getElementById("q" + id);
+      if (cb) { cb.checked = true; updateItemState(id); }
+    });
+    updateProgress();
+  } catch (e) { /* ignore */ }
+}
+
+// ── Compute ───────────────────────────────────────
+function getScores() {
+  const checked = new Set(
+    questions.filter(q => document.getElementById("q" + q.id).checked).map(q => q.id)
+  );
+  return talents.map(t => {
+    const hits = t.items.filter(id => checked.has(id));
+    return {
+      ...t,
+      score: hits.length,
+      hitItems: hits,
+      ratio: hits.length / t.items.length
+    };
+  }).sort((a, b) => b.score - a.score || b.ratio - a.ratio);
+}
+
+// ── Results ───────────────────────────────────────
+function showResults() {
+  const scores = getScores();
+  const totalChecked = document.querySelectorAll("#questionList input:checked").length;
+  if (totalChecked < 3) return;
+
+  document.getElementById("questionnaire").style.display = "none";
+  document.getElementById("results").style.display = "block";
+  document.getElementById("results").scrollIntoView({ behavior: "smooth" });
+
+  renderChart(scores);
+  renderRankings(scores);
+  renderDetailTags(scores);
+}
+
+function getScoreLabel(s, total) {
+  if (s >= total * 0.66) return "high";
+  if (s >= total * 0.33) return "medium";
+  return "low";
+}
+
+function getScoreText(s, total) {
+  const lvl = getScoreLabel(s, total);
+  if (lvl === "high") return "天赋显著 ✨";
+  if (lvl === "medium") return "值得关注 👀";
+  return "可以尝试 🌱";
+}
+
+function renderChart(scores) {
+  if (chartInstance) chartInstance.destroy();
+  const ctx = document.getElementById("radarChart").getContext("2d");
+
+  const maxScore = 3;
+  chartInstance = new Chart(ctx, {
+    type: "radar",
+    data: {
+      labels: scores.map(s => s.icon + " " + s.name),
+      datasets: [{
+        label: "天赋得分",
+        data: scores.map(s => s.score),
+        backgroundColor: "rgba(91,76,196,0.15)",
+        borderColor: "rgba(91,76,196,0.8)",
+        borderWidth: 2.5,
+        pointBackgroundColor: scores.map(s =>
+          s.score >= 2 ? "#FF6B6B" : s.score >= 1 ? "#7C6FE0" : "#CBC8E0"
+        ),
+        pointBorderColor: "#fff",
+        pointBorderWidth: 2,
+        pointRadius: 6,
+        pointHoverRadius: 9,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      scales: {
+        r: {
+          beginAtZero: true,
+          max: maxScore,
+          ticks: { stepSize: 1, font: { size: 11 }, backdropColor: "transparent" },
+          pointLabels: { font: { size: 13, weight: "bold" } },
+          grid: { color: "#E8E5F2" },
+          angleLines: { color: "#E8E5F2" }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` 得分: ${ctx.raw} / ${maxScore}  ${ctx.raw >= 2 ? "✦ 天赋显著" : ""}`
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderRankings(scores) {
+  const container = document.getElementById("talentRankings");
+  const totalPerTalent = 3;
+
+  container.innerHTML = scores.map((s, i) => {
+    const pct = Math.round(s.score / totalPerTalent * 100);
+    const level = getScoreLabel(s.score, totalPerTalent);
+    const label = getScoreText(s.score, totalPerTalent);
+    const topClass = i === 0 ? " top" : "";
+    return `
+      <div class="talent-card${topClass}">
+        <div class="talent-header">
+          <span class="talent-name">${s.icon} ${s.name}</span>
+          <span class="talent-score ${level}">${s.score}/${totalPerTalent} ${label}</span>
+        </div>
+        <div class="talent-bar-wrap">
+          <div class="talent-bar-fill ${level}" style="width:${pct}%"></div>
+        </div>
+        <div class="talent-detail">${s.desc}</div>
+        <div class="talent-suggest"><strong>培养建议：</strong>${s.suggest}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderDetailTags(scores) {
+  const container = document.getElementById("detailTags");
+  const checkedIds = new Set(
+    questions.filter(q => document.getElementById("q" + q.id).checked).map(q => q.id)
+  );
+
+  if (checkedIds.size === 0) {
+    container.innerHTML = '<div class="empty-state">未选中任何项目</div>';
+    return;
+  }
+
+  // Group checked items by which talents they belong to
+  const itemToTalents = {};
+  talents.forEach(t => {
+    t.items.forEach(id => {
+      if (checkedIds.has(id)) {
+        if (!itemToTalents[id]) itemToTalents[id] = [];
+        itemToTalents[id].push(t.name);
+      }
+    });
+  });
+
+  container.innerHTML = Object.entries(itemToTalents).map(([id, talentNames]) => {
+    const q = questions.find(q => q.id === parseInt(id));
+    return `
+      <div class="detail-tag">
+        <span class="num">${id}</span>
+        <span>${q.text.slice(0, 20)}...</span>
+        <span style="color:var(--primary);font-size:11px">→ ${talentNames.join("、")}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+function resetTest() {
+  document.getElementById("questionnaire").style.display = "block";
+  document.getElementById("results").style.display = "none";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// ── Start ─────────────────────────────────────────
+buildQuestions();
+loadState();
+
+// Handle page visibility change - recompute chart on return
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && document.getElementById("results").style.display !== "none") {
+    const scores = getScores();
+    renderChart(scores);
+  }
+});
+</script>
+</body>
+</html>
